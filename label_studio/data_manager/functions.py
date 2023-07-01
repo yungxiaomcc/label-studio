@@ -13,6 +13,7 @@ from data_manager.models import View
 from tasks.models import Task
 from urllib.parse import unquote
 from core.feature_flags import flag_set
+from ml.models import MLBackend
 
 TASKS = 'tasks:'
 logger = logging.getLogger(__name__)
@@ -342,7 +343,37 @@ def evaluate_predictions(tasks):
     for ml_backend in project.ml_backends.all():
         # tasks = tasks.filter(~Q(predictions__model_version=ml_backend.model_version))
         ml_backend.predict_tasks(tasks)
+    
 
+def evaluate_polygon_predictions(tasks):
+    """ Call ML backend for prediction evaluation of the task queryset with seggpt
+    """
+    if not tasks:
+        return
+
+    project = tasks[0].project
+
+    for ml_backend in project.ml_backends.all():
+        ml_backend:MLBackend
+        if ml_backend.title.startswith("polygon"):
+            print(f"predict task with polygon.....")
+            ml_backend.predict_tasks(tasks)
+            return 
+
+def evaluate_label_predictions(tasks):
+    """ Call ML backend for prediction evaluation of the task queryset with label
+    """
+    if not tasks:
+        return
+
+    project = tasks[0].project
+
+    for ml_backend in project.ml_backends.all():
+        ml_backend:MLBackend
+        if ml_backend.title.startswith("label"):
+            print(f"predict task with label.....")
+            ml_backend.predict_tasks(tasks)
+            return 
 
 def filters_ordering_selected_items_exist(data):
     return data.get('filters') or data.get('ordering') or data.get('selectedItems')

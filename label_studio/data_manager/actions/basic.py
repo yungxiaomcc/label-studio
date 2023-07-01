@@ -14,7 +14,7 @@ from tasks.models import (
 )
 from webhooks.utils import emit_webhooks_for_instance
 from webhooks.models import WebhookAction
-from data_manager.functions import evaluate_predictions
+from data_manager.functions import evaluate_predictions, evaluate_label_predictions, evaluate_polygon_predictions
 
 all_permissions = AllPermissions()
 logger = logging.getLogger(__name__)
@@ -29,6 +29,23 @@ def retrieve_tasks_predictions(project, queryset, **kwargs):
     evaluate_predictions(queryset)
     return {'processed_items': queryset.count(), 'detail': 'Retrieved ' + str(queryset.count()) + ' predictions'}
 
+def retrieve_tasks_predictions_label(project, queryset, **kwargs):
+    """ Retrieve predictions by tasks ids
+
+    :param project: project instance
+    :param queryset: filtered tasks db queryset
+    """
+    evaluate_label_predictions(queryset)
+    return {'processed_items': queryset.count(), 'detail': 'Retrieved ' + str(queryset.count()) + ' predictions'}
+
+def retrieve_tasks_predictions_polygon(project, queryset, **kwargs):
+    """ Retrieve predictions by tasks ids
+
+    :param project: project instance
+    :param queryset: filtered tasks db queryset
+    """
+    evaluate_polygon_predictions(queryset)
+    return {'processed_items': queryset.count(), 'detail': 'Retrieved ' + str(queryset.count()) + ' predictions'}
 
 def delete_tasks(project, queryset, **kwargs):
     """ Delete tasks by ids
@@ -129,10 +146,22 @@ def async_project_summary_recalculation(tasks_ids_list, project_id):
 
 
 actions = [
-    {
-        'entry_point': retrieve_tasks_predictions,
+     {
+        'entry_point': retrieve_tasks_predictions_polygon,
         'permission': all_permissions.predictions_any,
-        'title': 'Retrieve Predictions',
+        'title': 'Retrieve Predictions By Polygon',
+        'order': 89,
+        'dialog': {
+            'text': 'Send the selected tasks to Seggpt ML Backends which has \'seggpt\' prefix in configuration.'
+                    'This operation might be abruptly interrupted due to a timeout.'
+                    'Please confirm your action.',
+            'type': 'confirm'
+        }
+    },
+    {
+        'entry_point': retrieve_tasks_predictions_label,
+        'permission': all_permissions.predictions_any,
+        'title': 'Retrieve Predictions By Label',
         'order': 90,
         'dialog': {
             'text': 'Send the selected tasks to all ML backends connected to the project.'
