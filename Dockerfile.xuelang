@@ -1,0 +1,9 @@
+FROM heartexlabs/label-studio:latest
+
+
+ENV LS_DIR=/label-studio
+
+
+WORKDIR $LS_DIR
+COPY --chown=1001:0 /label_studio/data_manager/functions.py label_studio/data_manager/functions.py
+COPY --chown=1001:0 /label_studio/data_manager/actions/basic.py label_studio/data_manager/actions/basic.py
